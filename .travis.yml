@@ -1,0 +1,22 @@
+language: generic
+sudo: required
+services:
+    - docker
+
+before_install:
+    - docker build -t kapatel123/react-test -f ./client/Dockerfile.dev ./client
+
+script: 
+    - docker run -e CI=true kapatel123/react-test npm test -- --coverage
+
+after_sucess:
+    - docker build -t kapatel123/multi-client ./client
+    - docker build -t kapatel123/multi-nginx ./nginx
+    - docker build -t kapatel123/multi-worker ./worker
+    - docker build -t kapatel123/multi-server ./server
+    - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+    - docker push kapatel123/multi-client
+    - docker push kapatel123/multi-nginx
+    - docker push kapatel123/multi-worker
+    - docker push kapatel123/multi-server
+    
